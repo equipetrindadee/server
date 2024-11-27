@@ -748,6 +748,7 @@ io.on("connection", (socket) => {
 
 // Inicia o servidor
 const PORT = 8181;
-server.listen(PORT, () => {
+const HOST = "0.0.0.0"
+server.listen(PORT,HOST, () => {
     console.log(`Servidor Express e Socket.io iniciado na porta ${PORT}`);
 });
