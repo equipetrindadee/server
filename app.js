@@ -19,8 +19,55 @@ app.use(cors()); // Configuração do CORS
 // Configuração do multer para upload de arquivos
 const upload = multer({ storage: multer.memoryStorage() }); // Armazena a imagem em memória
 
+app.post('/jornal', upload.single('image'), async (req, res) => {
+    try {
+        // Dados enviados pelo frontend
+        const {
+            numberTemplate,
+            title,
+            author,
+            status,
+            coluna,
+            texts,
+            qrCodeText1,
+            qrCodeText2,
+        } = req.body;
 
-// teste
+        // Preparando os dados para salvar no Firestore
+        const dataToSave = {
+            numberTemplate,
+            title,
+            author,
+            status,
+            coluna,
+            texts: JSON.parse(texts), // Converte string para array
+            qrCodeText1,
+            qrCodeText2,
+            timestamp: new Date(),
+        };
+
+        // Verifica se uma imagem foi enviada
+        if (req.file) {
+            const imageBuffer = req.file.buffer; // Imagem carregada no buffer
+            const imageName = req.file.originalname; // Nome do arquivo original
+
+            // (Opcional) Salvar a imagem no Firestore Storage ou outro serviço
+            dataToSave.image = { name: imageName, data: imageBuffer.toString('base64') };
+        }
+
+        // Adiciona o documento no Firestore
+        const collectionRef = db.collection('edicao'); // Nome da coleção
+        await collectionRef.add(dataToSave);
+
+        res.status(201).json({ message: 'Dados enviados com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao salvar dados:', error);
+        res.status(500).json({ error: 'Erro ao salvar dados no Firestore' });
+    }
+});
+
+
+
 // Endpoint para fazer o upload da imagem no Firebase Storage e salvar a URL no Firestore
 app.post('/formulario', upload.single('image'), async (req, res) => {
     try {
